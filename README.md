@@ -206,6 +206,8 @@ python kingstone_ranking_detail.py
 - 原 CSV 檔案（新增欄位）
 - 錯誤記錄 CSV：`ranking_result/kingstone/kingstone_errors_YYYYMMDD.csv`
 
+> ⚠️ **注意**：金石堂爬蟲**不需要登入**，可直接爬取公開資訊。
+
 ---
 
 ## 📖 誠品線上 (Eslite)
@@ -291,8 +293,7 @@ jupyter notebook sanmin_ranking.ipynb
 - `ranking_result/sanmin/sanmin_books_YYYYMMDD.csv`
 - 日誌檔案：`實體書排行榜code/log/sanmin_plog_YYYYMMDD.txt`
 
-**配置需求：**
-- `config.py` 中設定 `SANMIN_ACCOUNT` 和 `SANMIN_PASSWORD`
+> ⚠️ **注意**：三民書局爬蟲**不需要登入**，可直接爬取公開資訊。
 
 **Notebook 優勢：**
 - 📊 即時視覺化爬取進度
