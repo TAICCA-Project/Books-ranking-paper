@@ -93,65 +93,206 @@ class Config:
 
 ## 🚀 使用方法
 
-### 博客來 (Books.com.tw) 爬蟲
+本專案的爬蟲分為兩個階段：
+1. **階段一：排行榜爬蟲** - 使用 Jupyter Notebook 快速獲取排行榜書單
+2. **階段二：詳細資訊爬蟲** - 使用 Python 腳本深入爬取每本書的完整資訊
 
-**多瀏覽器手動登入模式**（推薦）：
+以下按平台說明完整的執行流程、相依檔案與使用方式。
+
+---
+
+## 📖 博客來 (Books.com.tw)
+
+### 執行順序
+
+#### 步驟 1️⃣：爬取排行榜（初步爬蟲）
+使用 Jupyter Notebook 獲取排行榜書單：
+
+```bash
+jupyter notebook ranking_30pbooks_daily_update.ipynb
+```
+
+**執行內容：**
+- 開啟 Notebook 後，執行**第一個 Cell**（博客來排行榜爬蟲）
+- 爬取博客來總榜前 100 名書籍
+
+**輸出檔案：**
+- `ranking_result/bookscom/books_all_categories_YYYYMMDD.csv`
+- `實體書排行榜code/log/books_plog_YYYYMMDD.txt`
+
+**CSV 欄位：**
+`production_id`, `title`, `author`, `url`, 排名日期 (如 `12/15`)
+
+---
+
+#### 步驟 2️⃣：爬取詳細資訊（生產級爬蟲）
+使用 Python 腳本補充完整書籍資訊：
+
 ```bash
 cd 實體書排行榜code
-python bookscom_ranking_detail.py <CSV路徑> <瀏覽器數量>
+python bookscom_ranking_detail.py <排行榜CSV路徑> <瀏覽器數量>
 ```
 
 **範例：**
 ```bash
-python bookscom_ranking_detail.py ../ranking_result/bookscom/books.csv 3
+python bookscom_ranking_detail.py ../ranking_result/bookscom/books_all_categories_20251215.csv 3
 ```
 
-程式會開啟 3 個 Chrome 瀏覽器視窗，請在每個視窗中手動登入，然後程式會自動開始並行爬取。
+**相依檔案（輸入）：**
+- 步驟 1 產生的排行榜 CSV 檔案
+
+**功能特色：**
+- ✅ 多瀏覽器手動登入（避免驗證碼）
+- ✅ 多線程並行爬取（加速處理）
+- ✅ 自動補充 ISBN、出版社、出版日期、譯者、原文書名等資訊
+- ✅ 即時更新 CSV，防止資料遺失
+
+**輸出檔案：**
+- 原 CSV 檔案（新增欄位）
+- 錯誤記錄檔（如有失敗）
+
+**配置需求：**
+- `config.py` 中設定 `BOOKSCOM_ACCOUNT` 和 `BOOKSCOM_PASSWORD`
 
 ---
 
-### 誠品線上 (Eslite) 爬蟲
+## 📖 金石堂 (Kingstone)
 
-**方式一：使用已存 Cookie**
+### 執行順序
+
+#### 步驟 1️⃣：爬取排行榜（初步爬蟲）
+使用 Jupyter Notebook 獲取排行榜書單：
+
 ```bash
-python eslite_ranking_detail.py <CSV路徑>
+jupyter notebook ranking_30pbooks_daily_update.ipynb
 ```
 
-**方式二：手動登入取得 Cookie**
-```bash
-python eslite_ranking_detail.py <CSV路徑> --use-manual-login
-```
+**執行內容：**
+- 開啟 Notebook 後，執行**第二個 Cell**（金石堂排行榜爬蟲）
+- 爬取金石堂月排行榜書籍
 
-首次執行建議使用方式二，程式會引導您手動登入並儲存 Cookie 至 `cookies/eslite_cookies_latest.json`。
+**輸出檔案：**
+- `ranking_result/kingstone/kingstone_all_categories_YYYYMMDD.csv`
+- `實體書排行榜code/log/kingstone_plog_YYYYMMDD.txt`
 
-> 📁 **Cookie 管理**：Cookie 檔案儲存在 `cookies/` 資料夾（已排除於 Git）。如需分享專案，請勿包含此資料夾。
+**CSV 欄位：**
+`production_id`, `title`, `author`, `url`, 排名日期
 
 ---
 
-### 金石堂 (Kingstone) 爬蟲
+#### 步驟 2️⃣：爬取詳細資訊（生產級爬蟲）
+使用 Python 腳本補充完整書籍資訊：
 
 ```bash
+cd 實體書排行榜code
 python kingstone_ranking_detail.py
 ```
 
-執行後會提示輸入 CSV 檔案路徑。程式會自動讀取書籍 URL，逐一爬取詳細資訊並即時更新到 CSV。
-
-**測試模式：**
-```python
-from kingstone_ranking_detail import Excute
-Excute(csv_path="test.csv", test_mode=True, max_books=10)
+執行後會提示輸入 CSV 檔案路徑：
 ```
+請輸入CSV文件路徑: ../ranking_result/kingstone/kingstone_all_categories_20251215.csv
+```
+
+**相依檔案（輸入）：**
+- 步驟 1 產生的排行榜 CSV 檔案
+
+**功能特色：**
+- ✅ 即時 CSV 更新（逐筆寫入）
+- ✅ 錯誤記錄與追蹤
+- ✅ 反爬蟲對策（隨機延遲、User-Agent）
+- ✅ 自動補充 ISBN、出版社、出版日期、譯者、原文書名、分類等
+
+**輸出檔案：**
+- 原 CSV 檔案（新增欄位）
+- 錯誤記錄 CSV：`ranking_result/kingstone/kingstone_errors_YYYYMMDD.csv`
 
 ---
 
-### 三民書局 (Sanmin) 爬蟲 📓
+## 📖 誠品線上 (Eslite)
 
-**⭐ 重要：這是初步爬蟲的 Jupyter Notebook 實作**
+### 執行順序
 
-使用 Jupyter Notebook 執行：
+#### 步驟 1️⃣：爬取排行榜（初步爬蟲）
+使用 Jupyter Notebook 獲取排行榜書單：
+
+```bash
+jupyter notebook ranking_30pbooks_daily_update.ipynb
+```
+
+**執行內容：**
+- 開啟 Notebook 後，執行**第三個 Cell**（誠品排行榜爬蟲）
+- 爬取誠品總榜書籍
+
+**輸出檔案：**
+- `ranking_result/eslite/eslite_all_categories_YYYYMMDD.csv`
+- `實體書排行榜code/log/eslite_plog_YYYYMMDD.txt`
+
+**CSV 欄位：**
+`production_id`, `title`, `author`, `publisher`, `publish_date`, `url`, 排名日期
+
+---
+
+#### 步驟 2️⃣：爬取詳細資訊（生產級爬蟲）
+
+**方式一：使用已存 Cookie（推薦）**
+```bash
+cd 實體書排行榜code
+python eslite_ranking_detail.py <排行榜CSV路徑>
+```
+
+**方式二：手動登入取得 Cookie（首次執行）**
+```bash
+python eslite_ranking_detail.py <排行榜CSV路徑> --use-manual-login
+```
+
+**範例：**
+```bash
+python eslite_ranking_detail.py ../ranking_result/eslite/eslite_all_categories_20251215.csv
+```
+
+**相依檔案（輸入）：**
+- 步驟 1 產生的排行榜 CSV 檔案
+- Cookie 檔案（首次需手動登入產生）：`cookies/eslite_cookies_latest.json`
+
+**功能特色：**
+- ✅ Cookie 管理（避免重複登入）
+- ✅ OCR 圖片識別支援（價格辨識）
+- ✅ 自動重試機制
+- ✅ 補充 ISBN、譯者、原文書名等資訊
+
+**輸出檔案：**
+- 原 CSV 檔案（新增欄位）
+- Cookie 檔案：`cookies/eslite_cookies_latest.json`（自動更新）
+- 錯誤記錄 CSV（如有失敗）
+
+**配置需求：**
+- `config.py` 中設定 `ESLITE_ACCOUNT` 和 `ESLITE_PASSWORD`（手動登入模式需要）
+
+> 📁 **Cookie 管理注意事項**：Cookie 檔案儲存在 `cookies/` 資料夾（已排除於 Git）。如 Cookie 失效，請使用 `--use-manual-login` 重新登入。
+
+---
+
+## 📖 三民書局 (Sanmin)
+
+### 執行方式
+
+三民書局使用**單一 Jupyter Notebook** 完成所有爬取（排行榜 + 詳細資訊）：
+
 ```bash
 jupyter notebook sanmin_ranking.ipynb
 ```
+
+**執行內容：**
+- 在 Notebook 中逐步執行 Cell
+- 第一部分：爬取排行榜
+- 第二部分：爬取每本書的詳細資訊
+
+**輸出檔案：**
+- `ranking_result/sanmin/sanmin_books_YYYYMMDD.csv`
+- 日誌檔案：`實體書排行榜code/log/sanmin_plog_YYYYMMDD.txt`
+
+**配置需求：**
+- `config.py` 中設定 `SANMIN_ACCOUNT` 和 `SANMIN_PASSWORD`
 
 **Notebook 優勢：**
 - 📊 即時視覺化爬取進度
@@ -159,31 +300,36 @@ jupyter notebook sanmin_ranking.ipynb
 - 📝 可加入註解與分析
 - 💡 適合初學者理解爬蟲邏輯
 
-在 Notebook 中逐步執行 Cell，每個 Cell 負責不同階段的爬取任務。
+---
+
+## 📋 檔案相依關係總覽
+
+| 平台 | 階段一（排行榜） | 輸出 CSV | 階段二（詳細資訊） | 最終輸出 |
+|------|-----------------|---------|-------------------|---------|
+| **博客來** | `ranking_30pbooks_daily_update.ipynb` (Cell 1) | `ranking_result/bookscom/books_*.csv` | `bookscom_ranking_detail.py` | 完整 CSV |
+| **金石堂** | `ranking_30pbooks_daily_update.ipynb` (Cell 2) | `ranking_result/kingstone/kingstone_*.csv` | `kingstone_ranking_detail.py` | 完整 CSV |
+| **誠品** | `ranking_30pbooks_daily_update.ipynb` (Cell 3) | `ranking_result/eslite/eslite_*.csv` | `eslite_ranking_detail.py` | 完整 CSV |
+| **三民書局** | `sanmin_ranking.ipynb`（一體化） | - | - | `ranking_result/sanmin/sanmin_books_*.csv` |
 
 ---
 
-### 三平台整合排行榜爬蟲 📓
+## 🔄 完整工作流程範例
 
-**⭐ 重要：這是博客來、金石堂、誠品三大平台的整合初步爬蟲**
+以博客來為例，完整的資料收集流程：
 
 ```bash
+# 1. 開啟 Jupyter Notebook
 jupyter notebook ranking_30pbooks_daily_update.ipynb
+
+# 2. 在 Notebook 中執行第一個 Cell（博客來排行榜）
+#    → 產生 ranking_result/bookscom/books_all_categories_20251215.csv
+
+# 3. 使用產生的 CSV 爬取詳細資訊
+cd 實體書排行榜code
+python bookscom_ranking_detail.py ../ranking_result/bookscom/books_all_categories_20251215.csv 3
+
+# 4. 等待爬取完成，最終 CSV 包含完整書籍資訊
 ```
-
-**包含三個平台的爬蟲：**
-1. **博客來 (Books.com.tw)** - 總榜排行
-2. **金石堂 (Kingstone)** - 月排行榜  
-3. **誠品 (Eslite)** - 排行榜
-
-**Notebook 特色：**
-- 📊 三個獨立的 Cell，分別爬取三個平台
-- 🔄 統一的 CSV 輸出格式
-- 📈 即時查看爬取進度和統計
-- 💾 自動保存到對應資料夾（`ranking_result/bookscom/`, `ranking_result/kingstone/`, `ranking_result/eslite/`）
-- 📝 生成詳細日誌文件
-
-每個平台的爬蟲可以獨立執行，您可以只運行需要的部分。
 
 ## 📂 專案架構
 
